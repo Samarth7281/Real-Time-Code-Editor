@@ -1,0 +1,17 @@
+body{
+  background-color: #121212;
+}
+
+/* Ensure the editor takes full height of the parent container */
+
+/* Adjust the CodeMirror wrapper to fill the container properly */
+.CodeMirror {
+  height: 100% !important; /* Ensures the CodeMirror editor takes full height */
+  font-size: large;
+}
+
+/* Optionally, customize the appearance of the line numbers */
+.CodeMirror-gutters {
+  background-color: #2b2b2b; /* Dark background for gutters */
+  border-right: 1px solid #555; /* Border between line numbers and code */
+}
