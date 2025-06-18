@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev:front": "vite",
-    "dev": "npm run build && num run server:prod",
+    "dev": "npm run build && npm run server:prod",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "server:dev": "nodemon src/backend/server.js",
-    "server:prod": "node server.js"
+    "server:prod": "node server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.20.0",
@@ -19,6 +20,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.36.1",
     "codemirror": "^5.65.18",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "react": "^18.3.1",

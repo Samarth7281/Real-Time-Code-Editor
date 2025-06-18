@@ -4,29 +4,29 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 const server = createServer(app);
 import cors from "cors";
-import { ACTIONS } from "./actions.js";
+import { ACTIONS } from "./src/backend/actions.js";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? true // Allow all origins in production for now
+        ? ["https://your-vercel-app.vercel.app", "http://localhost:5173"] // Replace with your actual Vercel domain
         : "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true,
   })
 );
 
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const io = new Server(server, {
   cors: {
     origin:
       process.env.NODE_ENV === "production"
-        ? true // Allow all origins in production for now
+        ? ["https://your-vercel-app.vercel.app", "http://localhost:5173"] // Replace with your actual Vercel domain
         : "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true,
@@ -35,7 +35,7 @@ const io = new Server(server, {
 
 app.use(express.static("dist"));
 app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, "..", "..", "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 const userSocketMap = {};
