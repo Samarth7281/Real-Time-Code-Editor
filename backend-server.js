@@ -5,21 +5,14 @@ import { Server } from "socket.io";
 const server = createServer(app);
 import cors from "cors";
 import { ACTIONS } from "./src/backend/actions.js";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? [
-            "https://real-time-code-editor-ten.vercel.app",
-            "http://localhost:5173",
-          ] // Updated with HTTPS
-        : "http://localhost:5173",
+    origin: [
+      "https://real-time-code-editor-ten.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -27,21 +20,19 @@ app.use(
 
 const io = new Server(server, {
   cors: {
-    origin:
-      process.env.NODE_ENV === "production"
-        ? [
-            "https://real-time-code-editor-ten.vercel.app",
-            "http://localhost:5173",
-          ] // Updated with HTTPS and consistent domain
-        : "http://localhost:5173",
+    origin: [
+      "https://real-time-code-editor-ten.vercel.app",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-app.use(express.static("dist"));
-app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+// Simple health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "Backend server is running" });
 });
 
 const userSocketMap = {};
@@ -129,5 +120,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`Listening to port ${PORT}`);
+  console.log(`Backend server listening on port ${PORT}`);
 });
