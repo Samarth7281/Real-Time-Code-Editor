@@ -1,57 +1,96 @@
 # Deployment Guide for Real-time Code Editor
 
-## Issues Fixed
+## Current Issue
 
-The socket connection issues you were experiencing were caused by:
+Vercel doesn't support persistent WebSocket connections, which is why you're getting "not found" errors when trying to access your deployed app.
 
-1. **Missing root server.js file** - The production build was looking for `server.js` in the root directory
-2. **Hardcoded CORS origins** - Server only allowed localhost connections
-3. **Missing environment variables** - Frontend couldn't find the backend URL
-4. **Vercel deployment configuration** - Missing proper Vercel configuration
+## Fixed Issues
 
-## Steps to Deploy
+### 1. MIME Type Error (Fixed)
 
-### 1. Update Your Vercel Domain
+The error "Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html"" has been fixed by:
 
-In the `server.js` file, replace `https://your-vercel-app.vercel.app` with your actual Vercel domain:
+- Updated `vercel.json` with proper static file routing
+- Added correct headers for asset caching
+- Updated `vite.config.js` for proper build configuration
 
-```javascript
-origin: process.env.NODE_ENV === 'production'
-  ? ['https://your-actual-app-name.vercel.app', 'http://localhost:5173']
-  : "http://localhost:5173",
-```
+### 2. WebSocket Connection Issue (Solution Below)
 
-### 2. Set Environment Variables in Vercel
+Vercel doesn't support persistent WebSocket connections, so we need a separate backend service.
 
-In your Vercel dashboard, go to your project settings and add these environment variables:
+## Solution: Keep Same Structure + Separate WebSocket Service
 
-- `VITE_BACKEND_URL`: `https://your-actual-app-name.vercel.app`
-- `NODE_ENV`: `production`
+### Option 1: Deploy Backend to Railway (Recommended)
 
-### 3. Deploy to Vercel
+1. **Deploy Backend to Railway:**
 
-```bash
-# Install dependencies
-npm install
+   ```bash
+   # Create a new directory for backend
+   mkdir real-time-code-editor-backend
+   cd real-time-code-editor-backend
 
-# Deploy to Vercel
-vercel --prod
-```
+   # Copy backend files
+   cp ../real-time-code-editor/backend-server.js ./server.js
+   cp ../real-time-code-editor/backend-package.json ./package.json
+   cp -r ../real-time-code-editor/src/backend ./src/
 
-### 4. Alternative: Use a Separate Backend Service
+   # Deploy to Railway
+   # Go to railway.app, create new project, connect your GitHub repo
+   ```
 
-For better WebSocket support, consider deploying your backend separately:
+2. **Update Frontend Configuration:**
 
-**Option A: Deploy backend to Railway/Render/Heroku**
+   - Get your Railway backend URL (e.g., `https://your-app.railway.app`)
+   - Set environment variable in Vercel:
+     - Go to your Vercel project settings
+     - Add environment variable: `VITE_BACKEND_URL=https://your-app.railway.app`
 
-1. Deploy only the backend (`server.js`) to a service that supports WebSockets
-2. Set `VITE_BACKEND_URL` to your backend service URL
-3. Deploy frontend to Vercel
+3. **Deploy Frontend to Vercel:**
+   ```bash
+   vercel --prod
+   ```
 
-**Option B: Use Socket.io Cloud Service**
+### Option 2: Use Socket.io Cloud Service
 
-1. Use a service like [Socket.io Cloud](https://cloud.socket.io/) or [Pusher](https://pusher.com/)
-2. Update the socket configuration to use the cloud service
+1. **Sign up for Socket.io Cloud:**
+
+   - Go to https://cloud.socket.io/
+   - Create a free account
+   - Get your connection URL
+
+2. **Update Frontend Configuration:**
+   - Set `VITE_BACKEND_URL` to your Socket.io Cloud URL
+   - Deploy to Vercel
+
+### Option 3: Use Pusher
+
+1. **Sign up for Pusher:**
+
+   - Go to https://pusher.com/
+   - Create a free account
+   - Get your app credentials
+
+2. **Update Code for Pusher:**
+   - Install: `npm install pusher pusher-js`
+   - Replace Socket.io with Pusher implementation
+
+## Quick Fix for Current Deployment
+
+To get your current deployment working immediately:
+
+1. **Deploy Backend to Railway:**
+
+   - Use the `backend-server.js` and `backend-package.json` files
+   - Deploy to Railway (free tier available)
+
+2. **Set Environment Variable:**
+
+   - In Vercel dashboard, add: `VITE_BACKEND_URL=https://your-railway-app.railway.app`
+
+3. **Redeploy Frontend:**
+   ```bash
+   vercel --prod
+   ```
 
 ## Testing
 
@@ -64,13 +103,44 @@ After deployment:
 
 ## Troubleshooting
 
-If you still have issues:
+### MIME Type Error (Fixed)
 
-1. **Check browser console** for connection errors
-2. **Verify environment variables** are set correctly in Vercel
-3. **Check CORS settings** match your actual domain
-4. **Test with different browsers** to rule out browser-specific issues
+- ✅ Updated `vercel.json` with proper routing
+- ✅ Added asset caching headers
+- ✅ Updated Vite configuration
 
-## Local Development
+### WebSocket Connection Issues
 
-For local development, the app will automatically use `http://localhost:5000` as the backend URL.
+If you still have WebSocket issues:
+
+1. Check browser console for connection errors
+2. Verify environment variables are set correctly
+3. Ensure CORS is configured properly on backend
+4. Test WebSocket connection using browser dev tools
+
+### Common Issues
+
+1. **"Module not found" errors**: Make sure all dependencies are installed
+2. **CORS errors**: Check that backend CORS includes your Vercel domain
+3. **Socket connection timeouts**: Verify backend URL is correct and accessible
+
+## File Structure (Kept Same)
+
+```
+real-time-code-editor/
+├── src/
+│   ├── backend/
+│   │   ├── socket.js (updated for external service)
+│   │   └── actions.js
+│   ├── components/
+│   ├── pages/
+│   └── ...
+├── server.js (for local development)
+├── backend-server.js (for Railway deployment)
+├── backend-package.json (for Railway deployment)
+├── vercel.json (updated for static build + proper routing)
+├── vite.config.js (updated for proper build)
+└── package.json
+```
+
+This approach keeps your existing structure while making it compatible with Vercel's limitations and fixing the MIME type error.
